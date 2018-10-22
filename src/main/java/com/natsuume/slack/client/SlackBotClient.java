@@ -2,17 +2,16 @@ package com.natsuume.slack.client;
 
 import java.io.IOException;
 import java.net.URI;
-
-import jdk.incubator.http.HttpClient;
-import jdk.incubator.http.HttpRequest;
-import jdk.incubator.http.HttpResponse;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public class SlackBotClient {
 	
 	private final URI uri;
 	
 	public SlackBotClient(String url) {
-		this.uri = URI.create(url);
+		this.uri = URI.create("https://hooks.slack.com/services/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");
 	}
 	
 	public static void main(String[] args) {
@@ -26,10 +25,10 @@ public class SlackBotClient {
 		HttpClient client = HttpClient.newHttpClient();
 		HttpRequest request = HttpRequest.newBuilder(uri)
 				.header("Content-type", "application/json")
-				.POST(HttpRequest.BodyPublisher.fromString(jsonContent))
+				.POST(HttpRequest.BodyPublishers.ofString(jsonContent))
 				.build();
 		try {
-			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandler.asString());
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 			System.out.println(response.headers());
 			System.out.println(response.statusCode());
 			System.out.println(response.body());
