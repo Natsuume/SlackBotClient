@@ -1,45 +1,45 @@
 package com.natsuumeweb.slack.client;
 
-import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
-import java.util.Map;
+import java.net.http.WebSocket.Listener;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import com.google.gson.Gson;
-import com.natsuumeweb.api.SlackAPI;
-import com.natsuumeweb.http.SimpleHttpClient;
-import com.natsuumeweb.slack.info.ConnectionInfo;
-
-public class SlackClient implements Runnable{
+public class SlackClient implements Listener{
 	
-	private ConnectionInfo connectionInfo;
-
-	public boolean connect(String botToken) throws IOException, InterruptedException {
-		Map<String, String> headers =  Map.of("Content-type", "application/x-www-form-urlencoded");
-		Map<String, String> postMessages = Map.of("token", botToken);
-		SimpleHttpClient httpClient = new SimpleHttpClient(SlackAPI.CONNECT.getURIText(), headers, postMessages);
-		
-		HttpResponse<String> response = httpClient.sendPost();
-		
-		Gson gson = new Gson();
-		ConnectionInfo connectionInfo = gson.fromJson(response.body(), ConnectionInfo.class);
-		this.connectionInfo = connectionInfo;
-		
-		System.out.println("connection " + connectionInfo.isSucceed());
-		
-		return connectionInfo.isSucceed();
-	}
-
+	private ExecutorService exec = Executors.newCachedThreadPool();
+	private List<CharSequence> messageParts = new ArrayList<>();
+	private CompletableFuture<?> accumulatedMessage = new CompletableFuture<>();
+	
 	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		if(connectionInfo == null || !connectionInfo.isSucceed()) {
-			System.err.println("SlackClient is not connected.");
-			return;
+	public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last){
+
+		messageParts.add(data);
+		webSocket.sendText("test", false);
+		webSocket.request(1);
+		if(last) {
+			processMessage(webSocket, String.join("", messageParts));
+			messageParts = new ArrayList<>();
+			accumulatedMessage.complete(null);
+			CompletionStage<?> cf = accumulatedMessage;
+			accumulatedMessage = new CompletableFuture<>();
+			return cf;
 		}
-		
-		WebSocket webSocket;
-		
+		return accumulatedMessage;
 	}
+	
+	private void processMessage(WebSocket webSocket, String message) {
+		System.out.println("debugPrint : " + message);
+	}
+	
+	@Override
+	public void onError(WebSocket webSocket, Throwable error) {
+		error.printStackTrace();
+	}
+	
 }
