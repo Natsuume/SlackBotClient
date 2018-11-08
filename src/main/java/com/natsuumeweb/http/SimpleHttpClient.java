@@ -78,7 +78,7 @@ public class SimpleHttpClient {
 	private String getEncodedMessages() {
 		List<String> messageList = messages.entrySet().stream().map(entry -> {
 			try {
-				return entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "utf-8");
+				return entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), encode);
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

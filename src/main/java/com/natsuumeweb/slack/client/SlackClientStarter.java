@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import com.google.gson.Gson;
 import com.natsuumeweb.api.SlackAPI;
 import com.natsuumeweb.http.SimpleHttpClient;
-import com.natsuumeweb.slack.info.ConnectionInfo;
+import com.natsuumeweb.slack.data.ConnectionInfo;
 
 public class SlackClientStarter implements Runnable{
 	

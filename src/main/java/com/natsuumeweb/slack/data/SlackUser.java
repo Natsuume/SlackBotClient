@@ -1,9 +1,8 @@
-package com.natsuumeweb.slack.info;
+package com.natsuumeweb.slack.data;
 
-public class SlackTeam {
+public class SlackUser {
 	private String id;
 	private String name;
-	private String domain;
 	
 	public String getId() {
 		return id;
@@ -11,9 +10,5 @@ public class SlackTeam {
 	
 	public String getName() {
 		return name;
-	}
-	
-	public String getDomain() {
-		return domain;
 	}
 }

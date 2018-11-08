@@ -1,4 +1,4 @@
-package com.natsuumeweb.slack.info;
+package com.natsuumeweb.data;
 
 import com.google.gson.annotations.SerializedName;
 

@@ -3,7 +3,6 @@
   <groupId>com.natsuume.slackbot</groupId>
   <artifactId>slackbot_client</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  
     <build>
   	<plugins>
 		<plugin>
