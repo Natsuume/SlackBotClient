@@ -9,24 +9,11 @@ public class ConnectionInfo {
 	@SerializedName("url")
 	private String uri;
 	
-	private SlackTeam team;
-
-	@SerializedName("self")
-	private SlackUser botUser;
-	
 	public boolean isSucceed() {
 		return isSucceed;
 	}
 	
 	public String getURI() {
 		return uri;
-	}
-	
-	public SlackTeam getTeam() {
-		return team;
-	}
-	
-	public SlackUser getBotUser() {
-		return botUser;
 	}
 }

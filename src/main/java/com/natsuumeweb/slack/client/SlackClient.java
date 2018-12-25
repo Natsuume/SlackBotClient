@@ -1,45 +1,80 @@
 package com.natsuumeweb.slack.client;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
-import java.net.http.WebSocket.Listener;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SlackClient implements Listener{
-	
-	private ExecutorService exec = Executors.newCachedThreadPool();
-	private List<CharSequence> messageParts = new ArrayList<>();
-	private CompletableFuture<?> accumulatedMessage = new CompletableFuture<>();
-	
-	@Override
-	public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last){
+import com.google.gson.Gson;
+import com.natsuumeweb.api.SlackAPI;
+import com.natsuumeweb.http.SimpleHttpClient;
+import com.natsuumeweb.slack.data.ConnectionInfo;
 
-		messageParts.add(data);
-		webSocket.sendText("test", false);
-		webSocket.request(1);
-		if(last) {
-			processMessage(webSocket, String.join("", messageParts));
-			messageParts = new ArrayList<>();
-			accumulatedMessage.complete(null);
-			CompletionStage<?> cf = accumulatedMessage;
-			accumulatedMessage = new CompletableFuture<>();
-			return cf;
+public class SlackClient{
+	
+	private ConnectionInfo connectionInfo;
+	private SlackListener listener = new SlackListener();
+	private ResponseProcessor processor = new ResponseProcessor();
+	private SlackSpeaker speaker;
+	private String token;
+
+	public SlackClient(String token) {
+		this.token = token;
+	}
+
+	public static void main(String[] args) {
+		if(args.length != 1)
+			return;
+		SlackClient client = new SlackClient(args[0]);
+		try {
+			client.start();
+		} catch (IOException | InterruptedException | ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return accumulatedMessage;
 	}
 	
-	private void processMessage(WebSocket webSocket, String message) {
-		System.out.println("debugPrint : " + message);
+	private boolean connect() throws IOException, InterruptedException {
+		Map<String, String> headers =  Map.of("Content-type", "application/x-www-form-urlencoded");
+		Map<String, String> postMessages = Map.of("token", token);
+		SimpleHttpClient httpClient = new SimpleHttpClient(SlackAPI.CONNECT.getURIText(), headers, postMessages);
+		
+		HttpResponse<String> response = httpClient.sendPost();
+		
+		Gson gson = new Gson();
+		ConnectionInfo connectionInfo = 
+				gson.fromJson(response.body(), ConnectionInfo.class);
+		this.connectionInfo = connectionInfo;
+		System.out.println(gson.toJson(connectionInfo));
+		
+		return connectionInfo.isSucceed();
 	}
 	
-	@Override
-	public void onError(WebSocket webSocket, Throwable error) {
-		error.printStackTrace();
+	private WebSocket createWebSocket() throws InterruptedException, ExecutionException {
+		HttpClient client = HttpClient.newHttpClient();
+		CompletableFuture<WebSocket> future = client
+				.newWebSocketBuilder()
+				.buildAsync(URI.create(connectionInfo.getURI()), listener);
+		return future.get();
 	}
 	
+	public void start() throws IOException, InterruptedException, ExecutionException {
+		connect();
+		
+		speaker = new SlackSpeaker(createWebSocket());
+		listener.subscribe(processor);
+		processor.subscribe(speaker);
+		
+		while(true) {
+			speaker.sendPing();
+			Thread.sleep(1000);;
+		}
+	}
 }
