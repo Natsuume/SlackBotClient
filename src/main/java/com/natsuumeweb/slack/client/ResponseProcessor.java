@@ -99,15 +99,6 @@ public class ResponseProcessor extends SubmissionPublisher<TransmissionMessage> 
 				break;
 			}
 			break;
-		case "deactivate":
-//			switch(array[1]) {
-//			case "bot":
-//				sendMessage("このchannelへの投稿を終了します。");
-//				activeChannels.remove(channel);
-//				break;
-//			case "nicorepo":
-//			}
-			break;
 		}
 	}
 	

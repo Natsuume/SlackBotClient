@@ -43,7 +43,8 @@ public class SimpleHttpClient {
 		this(uri, Redirect.ALWAYS, headers, messages);
 	}
 	
-	public SimpleHttpClient(String uri, Redirect redirect, Map<String, String> headers, Map<String, String> messages) {
+	public SimpleHttpClient(String uri, Redirect redirect, 
+			Map<String, String> headers, Map<String, String> messages) {
 		this.uri = uri;
 		this.headers = headers;
 		this.messages = messages;
@@ -63,13 +64,15 @@ public class SimpleHttpClient {
 	
 	public HttpResponse<String> sendPost() throws IOException, InterruptedException {
 		Builder builder = HttpRequest.newBuilder(URI.create(uri));
-		headers.entrySet().stream().forEach(entry -> builder.header(entry.getKey(), entry.getValue()));
+		headers.entrySet().stream()
+				.forEach(entry -> builder.header(entry.getKey(), entry.getValue()));
 		builder.POST(BodyPublishers.ofString(getEncodedMessages()));
 		return httpClient.send(builder.build(), BodyHandlers.ofString());
 	}
 	
 	public HttpResponse<String> sendGet() throws IOException, InterruptedException{
-		Builder builder = HttpRequest.newBuilder(URI.create(messages.isEmpty() ? uri : (uri + "?" + getEncodedMessages())))
+		Builder builder = HttpRequest
+				.newBuilder(URI.create(messages.isEmpty() ? uri : (uri + "?" + getEncodedMessages())))
 				.GET();
 		headers.entrySet().stream().forEach(entry -> builder.header(entry.getKey(), entry.getValue()));
 		return httpClient.send(builder.build(), BodyHandlers.ofString());		

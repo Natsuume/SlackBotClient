@@ -55,21 +55,6 @@ public class NiconicoClient {
 		loginInfo.setSession(cookie.toString());
 		return loginInfo.isLogin();
 	}
-
-	public boolean retryLogin() throws IOException, InterruptedException {
-		return login(loginInfo.getMail(), loginInfo.getPassword());
-	}
-	
-	public String requestVideoViewHistory() throws IOException, InterruptedException {
-		Map<String, String> headers = Map.of("Cookie", loginInfo.getCookie());
-		
-		SimpleHttpClient httpClient = new SimpleHttpClient(NiconicoAPI.VIDEO_VIEW_HISTORY.getURIText(), Redirect.ALWAYS, headers, Map.of());
-		HttpResponse<String> response = httpClient.sendGet();
-		String deserializedJson = new Gson().fromJson(response.body(), Map.class).toString();
-		System.out.println(deserializedJson);
-
-		return response.body();
-	}
 	
 	public void getMyRepoData() throws IOException, InterruptedException {
 		Map<String, String> headers = Map.of("Cookie", loginInfo.getCookie());
